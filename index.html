@@ -130,9 +130,8 @@
 
 <script>
 // ─── CONFIG ───────────────────────────────────────────────
-const ACCESS_PASSWORD = "Kurtz1998"; // 🔑 TROQUE AQUI
-const API_KEY = "SUA_CHAVE_AQUI // 🔑 COLE SUA CHAVE ANTHROPIC AQUI
-const MODEL   = "claude-haiku-4-5-20251001";
+const ACCESS_PASSWORD = "suasenha123"; // 🔑 TROQUE AQUI
+const MODEL = "claude-haiku-4-5-20251001";
 
 const SYSTEM = `Você é um ESPECIALISTA EM RECONSTRUÇÃO FOTOGRÁFICA ULTRA REALISTA, focado em criar prompts otimizados para o Gemini Imagen com qualidade de campanha publicitária.
 
@@ -263,9 +262,9 @@ async function sendImage() {
   addTyping();
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch("/.netlify/functions/proxy", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-api-key": API_KEY, "anthropic-version": "2023-06-01" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ model: MODEL, max_tokens: 1000, system: SYSTEM, messages: history })
     });
     const data = await res.json();
