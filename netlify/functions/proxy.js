@@ -13,7 +13,7 @@ exports.handler = async (event) => {
   try {
     const payload = JSON.parse(event.body);
     const body = JSON.stringify(payload);
-    const path = `/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const path = `/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
     const response = await new Promise((resolve, reject) => {
       const options = {
