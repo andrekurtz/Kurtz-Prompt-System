@@ -172,7 +172,7 @@ function handleFile(file) {
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement("canvas");
-      const max = 1024;
+      const max = 768;
       let w = img.width, h = img.height;
       if (w > max || h > max) {
         if (w > h) { h = Math.round(h * max / w); w = max; }
@@ -180,7 +180,7 @@ function handleFile(file) {
       }
       canvas.width = w; canvas.height = h;
       canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-      const compressed = canvas.toDataURL("image/jpeg", 0.8);
+      const compressed = canvas.toDataURL("image/jpeg", 0.7);
       b64 = compressed.split(",")[1];
       mime = "image/jpeg";
       document.getElementById("preview-img").src = compressed;
