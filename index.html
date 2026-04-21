@@ -194,7 +194,27 @@ function handleFile(file) {
     document.getElementById("send-btn").style.display = "block";
     document.getElementById("send-btn").disabled = false;
   };
-  r.readAsDataURL(file);
+  const img = new Image();
+img.onload = () => {
+  const canvas = document.createElement("canvas");
+  const max = 1200;
+  let w = img.width, h = img.height;
+  if (w > max || h > max) {
+    if (w > h) { h = Math.round(h * max / w); w = max; }
+    else { w = Math.round(w * max / h); h = max; }
+  }
+  canvas.width = w; canvas.height = h;
+  canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+  const compressed = canvas.toDataURL("image/jpeg", 0.85);
+  b64 = compressed.split(",")[1];
+  mime = "image/jpeg";
+  document.getElementById("preview-img").src = compressed;
+  document.getElementById("preview-bar").style.display = "flex";
+  document.getElementById("drop-zone").style.display = "none";
+  document.getElementById("send-btn").style.display = "block";
+  document.getElementById("send-btn").disabled = false;
+};
+img.src = e.target.result;;
 }
 function handleDrop(e) { e.preventDefault(); handleDragLeave(); handleFile(e.dataTransfer.files[0]); }
 function handleDragOver(e) { e.preventDefault(); document.getElementById("drop-zone").classList.add("drag"); }
