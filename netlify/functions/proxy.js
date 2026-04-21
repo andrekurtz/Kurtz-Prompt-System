@@ -5,23 +5,23 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return { statusCode: 500, body: JSON.stringify({ error: "Chave API não configurada." }) };
   }
 
   try {
-    const body = event.body;
+    const payload = JSON.parse(event.body);
+    const body = JSON.stringify(payload);
+    const path = `/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const response = await new Promise((resolve, reject) => {
       const options = {
-        hostname: "api.anthropic.com",
-        path: "/v1/messages",
+        hostname: "generativelanguage.googleapis.com",
+        path,
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
           "Content-Length": Buffer.byteLength(body)
         }
       };
