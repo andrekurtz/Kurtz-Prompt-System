@@ -144,7 +144,7 @@ REGRA DE OURO: zero redundância. Cada palavra tem função técnica.
 - NÃO descrever rosto, etnia, cabelo, olhos ou qualquer característica física.
 - NÃO inventar elementos ausentes na imagem.
 - NÃO alterar estrutura da cena.
-- IGNORAR marcas d'água, logos de aplicativos, ícones de interface e elementos gráficos sobrepostos na imagem. Esses elementos NÃO fazem parte da cena e devem ser completamente desconsiderados. Gerar o prompt normalmente ignorando sua presença.
+- IGNORAR textos, marcas d'água e overlays.
 
 # ANÁLISE OBRIGATÓRIA
 1. Cena, enquadramento, composição
@@ -184,37 +184,31 @@ let b64 = null, mime = null;
 // ─── FILE HANDLING ─────────────────────────────────────────
 function handleFile(file) {
   if (!file || !file.type.startsWith("image/")) return;
-  mime = file.type;
   const r = new FileReader();
   r.onload = e => {
-    b64 = e.target.result.split(",")[1];
-    document.getElementById("preview-img").src = e.target.result;
-    document.getElementById("preview-bar").style.display = "flex";
-    document.getElementById("drop-zone").style.display = "none";
-    document.getElementById("send-btn").style.display = "block";
-    document.getElementById("send-btn").disabled = false;
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const max = 1024;
+      let w = img.width, h = img.height;
+      if (w > max || h > max) {
+        if (w > h) { h = Math.round(h * max / w); w = max; }
+        else { w = Math.round(w * max / h); h = max; }
+      }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL("image/jpeg", 0.8);
+      b64 = compressed.split(",")[1];
+      mime = "image/jpeg";
+      document.getElementById("preview-img").src = compressed;
+      document.getElementById("preview-bar").style.display = "flex";
+      document.getElementById("drop-zone").style.display = "none";
+      document.getElementById("send-btn").style.display = "block";
+      document.getElementById("send-btn").disabled = false;
+    };
+    img.src = e.target.result;
   };
-  const img = new Image();
-img.onload = () => {
-  const canvas = document.createElement("canvas");
-  const max = 1200;
-  let w = img.width, h = img.height;
-  if (w > max || h > max) {
-    if (w > h) { h = Math.round(h * max / w); w = max; }
-    else { w = Math.round(w * max / h); h = max; }
-  }
-  canvas.width = w; canvas.height = h;
-  canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-  const compressed = canvas.toDataURL("image/jpeg", 0.85);
-  b64 = compressed.split(",")[1];
-  mime = "image/jpeg";
-  document.getElementById("preview-img").src = compressed;
-  document.getElementById("preview-bar").style.display = "flex";
-  document.getElementById("drop-zone").style.display = "none";
-  document.getElementById("send-btn").style.display = "block";
-  document.getElementById("send-btn").disabled = false;
-};
-img.src = e.target.result;;
+  r.readAsDataURL(file);
 }
 function handleDrop(e) { e.preventDefault(); handleDragLeave(); handleFile(e.dataTransfer.files[0]); }
 function handleDragOver(e) { e.preventDefault(); document.getElementById("drop-zone").classList.add("drag"); }
@@ -287,14 +281,18 @@ async function sendImage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ model: MODEL, max_tokens: 1000, system: SYSTEM, messages: history })
     });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData?.error?.message || `HTTP ${res.status}`);
+    }
     const data = await res.json();
-    const reply = data.content?.map(b => b.text || "").join("") || "Erro ao obter resposta.";
+    const reply = data.content?.map(b => b.text || "").join("") || "Sem resposta.";
     history.push({ role: "assistant", content: reply });
     removeTyping();
     addMsg("assistant", reply);
-  } catch {
+  } catch(err) {
     removeTyping();
-    addMsg("assistant", "Erro de conexão. Tente novamente.");
+    addMsg("assistant", "Erro: " + err.message);
   }
 }
 </script>
